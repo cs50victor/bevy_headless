@@ -22,9 +22,8 @@ impl Node for ImageExportNode {
         world: &World,
     ) -> Result<(), NodeRunError> {
         for (_, source) in world.resource::<RenderAssets<ImageExportSource>>().iter() {
-            if let Some(gpu_image) = world
-                .resource::<RenderAssets<Image>>()
-                .get(&source.source_handle)
+            if let Some(gpu_image) =
+                world.resource::<RenderAssets<Image>>().get(&source.source_handle)
             {
                 render_context.command_encoder().copy_texture_to_buffer(
                     gpu_image.texture.as_image_copy(),

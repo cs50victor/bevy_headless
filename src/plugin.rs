@@ -70,11 +70,7 @@ pub struct GpuImageExportSource {
 
 impl GpuImageExportSource {
     fn get_bps(&self) -> (usize, usize, Extent3d) {
-        (
-            self.bytes_per_row as usize,
-            self.padded_bytes_per_row as usize,
-            self.source_size,
-        )
+        (self.bytes_per_row as usize, self.padded_bytes_per_row as usize, self.source_size)
     }
 }
 
@@ -122,29 +118,20 @@ pub struct ImageExportStartFrame(u64);
 
 impl Default for ImageExportSettings {
     fn default() -> Self {
-        Self {
-            extension: "png".into(),
-        }
+        Self { extension: "png".into() }
     }
 }
 
 impl ExtractComponent for ImageExportSettings {
     type Filter = ();
     type Out = (Self, Handle<ImageExportSource>, ImageExportStartFrame);
-    type Query = (
-        &'static Self,
-        &'static Handle<ImageExportSource>,
-        &'static ImageExportStartFrame,
-    );
+    type Query =
+        (&'static Self, &'static Handle<ImageExportSource>, &'static ImageExportStartFrame);
 
     fn extract_component(
         (settings, source_handle, start_frame): QueryItem<'_, Self::Query>,
     ) -> Option<Self::Out> {
-        Some((
-            settings.clone(),
-            source_handle.clone_weak(),
-            start_frame.clone(),
-        ))
+        Some((settings.clone(), source_handle.clone_weak(), start_frame.clone()))
     }
 }
 
@@ -155,9 +142,7 @@ fn setup_exporters(
 ) {
     *frame_id = frame_id.wrapping_add(1);
     for entity in &exporters {
-        commands
-            .entity(entity)
-            .insert(ImageExportStartFrame(*frame_id));
+        commands.entity(entity).insert(ImageExportStartFrame(*frame_id));
     }
 }
 
@@ -228,7 +213,7 @@ fn save_buffer_as_resource(
                         frame_id,
                         extension,
                     );
-                }
+                },
                 _ => {
                     capture_img_bytes::<Rgba<u8>>(
                         &image_bytes,
@@ -237,7 +222,7 @@ fn save_buffer_as_resource(
                         frame_id,
                         extension,
                     );
-                }
+                },
             }
         }
     }
@@ -255,14 +240,11 @@ fn capture_img_bytes<P: Pixel + PixelWithColorType>(
 {
     match ImageBuffer::<P, _>::from_raw(source_size.width, source_size.height, image_bytes) {
         Some(image_bytes) => {
-            curr_img
-                .0
-                .lock()
-                .update_data(frame_id, &image_bytes, extension.to_owned());
-        }
+            curr_img.0.lock().update_data(frame_id, &image_bytes, extension.to_owned());
+        },
         None => {
             log::error!("Failed creating image buffer for frame - '{frame_id}'");
-        }
+        },
     }
 }
 
@@ -295,9 +277,7 @@ impl Plugin for HeadlessPlugin {
 
         app.configure_sets(
             PostUpdate,
-            (SetupImageExport, SetupImageExportFlush)
-                .chain()
-                .before(CameraUpdateSystem),
+            (SetupImageExport, SetupImageExportFlush).chain().before(CameraUpdateSystem),
         )
         .register_type::<ImageExportSource>()
         .init_asset::<ImageExportSource>()
@@ -320,9 +300,7 @@ impl Plugin for HeadlessPlugin {
 
         render_app.add_systems(
             Render,
-            save_buffer_as_resource
-                .after(RenderSet::Render)
-                .before(RenderSet::Cleanup),
+            save_buffer_as_resource.after(RenderSet::Render).before(RenderSet::Cleanup),
         );
 
         let mut graph = render_app.world.get_resource_mut::<RenderGraph>().unwrap();
