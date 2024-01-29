@@ -1,0 +1,40 @@
+name: CI-RS
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_TERM_VERBOSE: true
+  RUST_BACKTRACE: 1
+
+
+jobs:
+  ci-rs:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rust-toolchain:
+          - nightly
+
+    steps:
+      - name: Get source code
+        uses: actions/checkout@v3
+
+      - name: Setup ${{ matrix.rust-toolchain }} rust toolchain with caching
+        uses: brndnmtthws/rust-action@v1
+        with:
+          toolchain: ${{ matrix.rust-toolchain }}
+          components: rustfmt, clippy
+          enable-sccache: "true"
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Test
+        run: cargo test --release
+
+      - name: Lint
+        run: cargo fmt --all -- --check && cargo clippy --verbose -- -D warnings
